@@ -1,0 +1,5 @@
+name: ReinforcedElytra
+version: '1.0'
+main: me.MILLSBOSS.reinforcedElytra.ReinforcedElytra
+api-version: '1.21'
+author: MILLSBOSS

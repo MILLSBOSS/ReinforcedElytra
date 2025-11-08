@@ -1,0 +1,4 @@
+# ReinforcedElytra configuration
+# When enabled (true), players can combine a chestplate and an elytra on an anvil to create a Reinforced Elytra.
+# When disabled (false), combining is blocked. Players can still separate existing Reinforced Elytra on an anvil.
+enable-combined-elytra: true
