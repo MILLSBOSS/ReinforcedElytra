@@ -25,13 +25,14 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.bukkit.inventory.EquipmentSlotGroup;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.concurrent.ThreadLocalRandom;
+import java.nio.charset.StandardCharsets;
 
 public class AnvilDropListener implements Listener {
     private final ReinforcedElytra plugin;
@@ -196,15 +197,15 @@ public class AnvilDropListener implements Listener {
         double armor = armorValue(chestplate.getType());
         double toughness = toughnessValue(chestplate.getType());
         if (armor > 0) {
-            AttributeModifier armorMod = new AttributeModifier(new NamespacedKey(plugin, "reinforced_armor"), armor, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+            AttributeModifier armorMod = buildChestModifier("reinforced_armor", armor);
             meta.addAttributeModifier(Attribute.ARMOR, armorMod);
         }
         if (toughness > 0) {
-            AttributeModifier toughMod = new AttributeModifier(new NamespacedKey(plugin, "reinforced_toughness"), toughness, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+            AttributeModifier toughMod = buildChestModifier("reinforced_toughness", toughness);
             meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS, toughMod);
         }
         if (chestplate.getType() == Material.NETHERITE_CHESTPLATE) {
-            AttributeModifier kbMod = new AttributeModifier(new NamespacedKey(plugin, "reinforced_kb"), 0.1, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+            AttributeModifier kbMod = buildChestModifier("reinforced_kb", 0.1);
             meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, kbMod);
         }
 
@@ -224,6 +225,11 @@ public class AnvilDropListener implements Listener {
         // Update lore to show both component durabilities
         updateReinforcedLore(result);
         return result;
+    }
+
+    private AttributeModifier buildChestModifier(String keyName, double amount) {
+        UUID uuid = UUID.nameUUIDFromBytes((plugin.getName() + ":" + keyName).getBytes(StandardCharsets.UTF_8));
+        return new AttributeModifier(uuid, keyName, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST);
     }
 
     private void setElytraDamageByChestplateHealth(ItemStack elytraResult, ItemStack chestplate) {
