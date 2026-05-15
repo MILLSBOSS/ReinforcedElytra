@@ -26,6 +26,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 
 import java.io.*;
@@ -228,8 +229,23 @@ public class AnvilDropListener implements Listener {
     }
 
     private AttributeModifier buildChestModifier(String keyName, double amount) {
-        UUID uuid = UUID.nameUUIDFromBytes((plugin.getName() + ":" + keyName).getBytes(StandardCharsets.UTF_8));
-        return new AttributeModifier(uuid, keyName, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST);
+        NamespacedKey key = new NamespacedKey(plugin, keyName);
+        try {
+            // Check for existence of EquipmentSlotGroup to ensure 1.21+ compatibility
+            Class.forName("org.bukkit.inventory.EquipmentSlotGroup");
+            return new AttributeModifier(key, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+        } catch (ClassNotFoundException | NoClassDefFoundError | NoSuchMethodError e) {
+            // Fallback for older versions (pre-1.21)
+            UUID uuid = UUID.nameUUIDFromBytes((plugin.getName() + ":" + keyName).getBytes(StandardCharsets.UTF_8));
+            try {
+                // Use deprecated constructor via reflection to avoid compile-time warning
+                return AttributeModifier.class.getConstructor(UUID.class, String.class, double.class, AttributeModifier.Operation.class, EquipmentSlot.class)
+                        .newInstance(uuid, keyName, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST);
+            } catch (Exception ex) {
+                // This should not happen on any version we support
+                return null;
+            }
+        }
     }
 
     private void setElytraDamageByChestplateHealth(ItemStack elytraResult, ItemStack chestplate) {
