@@ -104,7 +104,7 @@ public class AnvilDropListener implements Listener {
             World world = anvilLoc.getWorld();
             if (world != null) {
                 Item dropped = world.dropItemNaturally(anvilLoc.clone().add(0.5, 1.0, 0.5), reinforced);
-                dropped.setVelocity(new Vector(0, 0.1, 0));
+                dropped.setVelocity(new Vector(0.0, 0.1, 0.0));
             }
             playAnvilSound(anvilLoc);
         }
@@ -230,22 +230,7 @@ public class AnvilDropListener implements Listener {
 
     private AttributeModifier buildChestModifier(String keyName, double amount) {
         NamespacedKey key = new NamespacedKey(plugin, keyName);
-        try {
-            // Check for existence of EquipmentSlotGroup to ensure 1.21+ compatibility
-            Class.forName("org.bukkit.inventory.EquipmentSlotGroup");
-            return new AttributeModifier(key, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
-        } catch (ClassNotFoundException | NoClassDefFoundError | NoSuchMethodError e) {
-            // Fallback for older versions (pre-1.21)
-            UUID uuid = UUID.nameUUIDFromBytes((plugin.getName() + ":" + keyName).getBytes(StandardCharsets.UTF_8));
-            try {
-                // Use deprecated constructor via reflection to avoid compile-time warning
-                return AttributeModifier.class.getConstructor(UUID.class, String.class, double.class, AttributeModifier.Operation.class, EquipmentSlot.class)
-                        .newInstance(uuid, keyName, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.CHEST);
-            } catch (Exception ex) {
-                // This should not happen on any version we support
-                return null;
-            }
-        }
+        return new AttributeModifier(key, amount, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
     }
 
     private void setElytraDamageByChestplateHealth(ItemStack elytraResult, ItemStack chestplate) {
